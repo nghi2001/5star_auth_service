@@ -1,0 +1,1 @@
+export const AuthApi:string = process.env.AUTH_SERVICE || '';
