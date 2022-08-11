@@ -11,6 +11,7 @@ router.get("/listToken/:id",UserController.getListToken.bind(UserController));
 router.post("/sigup",validate(UserValidation,{},{}), UserController.sigup.bind(UserController));
 router.post("/sigin",validate(LoginValidation), UserController.sigin.bind(UserController));
 
+router.post("/revoke", UserController.revokeToken.bind(UserController));
 router.post("/resetToken", UserController.getNewToken.bind(UserController))
 router.post("/changepass", validate(ChangePassValidation), UserController.changePassword.bind(UserController))
 router.post("/active", validate(CheckCodeValidation), UserController.activeAccount.bind(UserController))

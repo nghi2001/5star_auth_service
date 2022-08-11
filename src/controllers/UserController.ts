@@ -48,14 +48,13 @@ class UserController {
             if( checkExitsToken && checkExitsToken.status == true ){
                 console.log(checkExitsToken);
                 
-                let token = await this.UserService.generateToken(checkExitsToken.data);
-                console.log(token);
+                let token = await this.UserService.generateAccessToken(checkExitsToken.data);
                 
                 return res.json(token);
-            } else throw Error('loi')
+            } else throw Error('Error')
         } catch (error) {
             console.log(error);
-            res.json(error)
+            res.status(401).json(error)
         }
     }
     async sigup(req: Request, res: Response) {
@@ -154,6 +153,18 @@ class UserController {
             res.json(listToken)
         } catch (error) {
             res.json(error)
+        }
+    }
+
+    async revokeToken(req:Request,res:Response) {
+        try {
+            const {idToken,idUser} = req.body;
+            const result = await this.UserService.revokeToken(idUser, idToken)
+            
+            res.json(result)
+        } catch (error) {
+            console.log(error);
+            res.json(error)            
         }
     }
 }

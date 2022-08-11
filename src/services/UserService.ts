@@ -81,7 +81,7 @@ class UserService {
         let {_id,username} = user
         //create Access Token
         const accessToken = jwt.sign({_id,username},process.env.ACCESS_TOKEN_SECRET as Secret,{
-            expiresIn: '30s'
+            expiresIn: '5m'
         })
         console.log(process.env.ACCESS_TOKEN_SECRET);
         console.log(1,accessToken);
@@ -96,6 +96,18 @@ class UserService {
             accessToken,
             refreshToken
         }
+    }
+
+    async generateAccessToken(user:any) {
+        let {_id,username} = user
+        //create Access Token
+        const accessToken = jwt.sign({_id,username},process.env.ACCESS_TOKEN_SECRET as Secret,{
+            expiresIn: '5m'
+        })
+        console.log(process.env.ACCESS_TOKEN_SECRET);
+        console.log(1,accessToken);
+
+        return accessToken
     }
 
     async UpdateRefreshToken(id:string,name:string ,token:string) {
@@ -120,12 +132,13 @@ class UserService {
             return []
         }
     }
+    
     async checkExitsToken(id:string, token:string) {
         let user:UserType = await this.UserRepository.findOne({_id: id});
         if( user  && user.refreshToken) {
             
-            for(let i = 0;i<=user.refreshToken?.length;i++) {
-                console.log(user.refreshToken[i]);
+            for(let i = 0;i<user.refreshToken?.length;i++) {
+                console.log(user.refreshToken[i],'nguyen duy', token);
                 
                 if( user.refreshToken[i].token == token) {
                     
@@ -137,6 +150,12 @@ class UserService {
         } else {
             return {status: 'Not Found'}
         }
+    }
+
+    async revokeToken(idUser:string,idToken:string) {
+        let result = await this.UserRepository.deleteToken(idUser, idToken)
+
+        return result
     }
 }
 
