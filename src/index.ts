@@ -13,8 +13,10 @@ dotenv.config();
 const PORT = process.env.PORT || 4000;
 
 try {
-    mongoose.connect(`mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
+    mongoose.connect(`${process.env.DB_URL}`)
         .then(() => {
+            console.log(process.env.DB_URL);
+            
             console.log("db connected");
             
         })
@@ -24,13 +26,13 @@ try {
 
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000","125.235.234.147"],
     credentials: true
 }));
 app.use(Express.json())
 app.use(Express.urlencoded({extended:true}))
 
-app.use('/auth',AuthRoute)
+app.use('/user',AuthRoute)
 
 app.use(function(err:any, req:Request, res:Response, next:NextFunction) {
     if (err instanceof ValidationError) {
