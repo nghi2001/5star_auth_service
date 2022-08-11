@@ -2,41 +2,72 @@ import bcrypt from 'bcrypt';
 import { UserType } from '../models/UserModel';
 import UserModel from '../models/UserModel';
 import jwt, {Secret} from 'jsonwebtoken';
+import RabbitService from './RabbitService';
 import UserRepository from '../repository/UserRepository';
+import { UserRepositoryInterface } from '../repository/interface/UserInterface';
 class UserService {
+    RabbitService
+    UserRepository: UserRepositoryInterface
+
+    constructor() {
+        this.RabbitService = new RabbitService()
+        this.UserRepository = new UserRepository()
+    }
     hello() {
         return 'ajnvjlanvl';
     }
 
-    async checkUserName(name:string) {
-        let user = await UserRepository.findOne({username: name});
+    async checkUserName(name:string):Promise<any> {
+        let user = await this.UserRepository.findOne({username: name});
         return user
     }
 
-    async activeUser(name:string) {
-        let user = await UserRepository.UpdateOne({username:name}, {has_access : true})
+    async activeUser(_id:string, code:string) {
+        // let user = await this.UserRepository.UpdateOne({username:name}, {has_access : true})
+        let user = await this.UserRepository.findOne({_id:_id});
+
+        if(user) {
+            if (user.code == code) {
+                let user = await this.UserRepository.UpdateOne({_id:_id}, {has_access : true,code:''})
+                return true
+            } else {
+                return 'InvalidCode'
+            }
+        } else {
+            return 'NotFound'
+        }
     }
 
     async registerAccount(user:UserType): Promise<UserType> {
         let salt = await bcrypt.genSalt();
         let hashpass = await bcrypt.hash(user.password, salt);
-        user.password = hashpass
-        let newUser = await UserRepository.create(user)
+        user.password = hashpass;
         
-        // setTimeout(async () => {
-        //     let User = await this.checkUserName(newUser.username);
-        //     if(User?.has_access == false) {
-        //         UserRepository.DeleteOne({_id: newUser._id});
-        //     } else {
+        let newUser = await this.UserRepository.create(user)
 
-        //     }
+        this.RabbitService.sendMessage(JSON.stringify({
+            mail: newUser.email,
+            content: `Đây là code để kích hoạt tài khoản của bạn: ${newUser.code}`
+        }))
+        
+        let users = await this.checkUserName(newUser.username);
+        
+        setTimeout(async () => {
+            console.log('check');
             
-        // },10000)
-        return newUser          
+            let User = await this.checkUserName(newUser.username);
+            if(User?.has_access == false) {
+               this.UserRepository.DeleteOne({_id: newUser._id});
+            } else {
+
+            }
+            
+        },60000*2)
+        return users          
     }
 
-    async sigin(user: UserType) {
-        let result = await UserRepository.findOne({username: user.username});
+    async sigin(user:any) {
+        let result = await this.UserRepository.findOne({username: user.username});
         if( result != null ){
             if(bcrypt.compareSync(user.password, result.password)) {
                 return {status:true, data: result};
@@ -66,6 +97,17 @@ class UserService {
             refreshToken
         }
     }
+    async UpdateRefreshToken(id:string,name:string = 'Unknow',token:string) {
+        
+        let result = await this.UserRepository.addToken(id,name,token);
+        return result
+    }
+
+    async changepass(username:string, newpass:string) {
+        let salt = await bcrypt.genSalt();
+        let hashpass = await bcrypt.hash(newpass, salt);
+        let newuser = await this.UserRepository.UpdateOne({username: username}, {password: hashpass});
+    }
 }
 
-export default new UserService()
+export default UserService

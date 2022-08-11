@@ -14,11 +14,11 @@ class RabbitService {
     }
 
     async connect() {
-        let connect:Connection = await amqp.connect(`amqp://${this.RABBIT_USERNAME}:${this.RABBIT_PASS}@${this.RABBIT_HOST}:${this.RABBIT_PORT}`)
+        let connect:Connection = await amqp.connect(`${process.env.RABBIT_URL}`)
         return connect
     }
 
-    async sendMessage(queue='send_mail', content:string) {
+    async sendMessage(content:string, queue='send_mail') {
         
         let conn = await this.connect();
         let chanel:Channel = await conn.createChannel()
@@ -28,4 +28,4 @@ class RabbitService {
     }
 }
 
-export default new RabbitService()
+export default RabbitService

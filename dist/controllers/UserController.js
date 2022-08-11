@@ -58,8 +58,11 @@ class UserController {
             }
             else {
                 let token = yield UserService_1.default.generateToken(result.data);
-                res.cookie('rememberme', '1', { maxAge: 900000 });
-                res.send('kdkd');
+                res.clearCookie('token');
+                res.clearCookie("a");
+                res.cookie('token', token.accessToken.toString(), { httpOnly: true, maxAge: 900000000, secure: false });
+                res.cookie("a", "kdvjdavjlda", { maxAge: 90000000, httpOnly: false, secure: false });
+                res.json(token.accessToken.toString());
             }
         });
     }
