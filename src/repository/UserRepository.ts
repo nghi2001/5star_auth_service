@@ -21,8 +21,20 @@ class UserRepository implements UserRepositoryInterface{
     async addToken(id:string,name:string,token:string) {
         try {
             let User = await UserModel.findById(id);
-            User?.refreshToken.push({name:name,token:token});
-            await User?.save()
+            if(User) {
+                for( let i =0 ; i< User.refreshToken.length; i++) {
+                    if( User.refreshToken[i].name == name ) {
+                        User.refreshToken[i]. token = token;
+                        console.log(1);
+                        await User.save()
+                        return
+                    }
+                } 
+                User?.refreshToken.push({name:name,token:token});
+                console.log(2);
+                
+                await User?.save()
+            }
             return true
         } catch (error) {
             return error

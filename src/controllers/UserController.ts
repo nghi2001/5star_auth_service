@@ -1,9 +1,6 @@
 import { Response,Request } from 'express';
 import UserService from '../services/UserService';
-import validateEmail from '../helper/validateEmail';
-import RabbitService from '../services/RabbitService';
-import { UserType } from '../models/UserModel';
-import { Code } from 'mongodb';
+
 class UserController {
     UserService: UserService;
 
@@ -42,16 +39,32 @@ class UserController {
             })
         }
     }
+
+    async getNewToken (req:Request,res:Response) {
+        try {
+            let {refresh_token, user_id} = req.body;
+            let checkExitsToken = await this.UserService.checkExitsToken(user_id, refresh_token);
+            
+            if( checkExitsToken && checkExitsToken.status == true ){
+                console.log(checkExitsToken);
+                
+                let token = await this.UserService.generateToken(checkExitsToken.data);
+                console.log(token);
+                
+                return res.json(token);
+            } else throw Error('loi')
+        } catch (error) {
+            console.log(error);
+            res.json(error)
+        }
+    }
     async sigup(req: Request, res: Response) {
-        // RabbitService.sendMessage(JSON.stringify({mail:'nghindps16371@fpt.edu.vn',content:'<h1>Nghi</h1>'}))
         try {
             let result
             let findUser = await this.UserService.checkUserName(req.body.username)
             if(!findUser) {
                 let user = await this.UserService.registerAccount(req.body)
                 if (user) { 
-                    // const {code,...users} = user
-                    // console.log(users);
                     
                     result = {
                         id: user._id,
@@ -81,7 +94,6 @@ class UserController {
             const {username, password, deviceName} = req.body;
             let result = await this.UserService.sigin(req.body);
             if(result.status == false) {
-                // return res.status(401).json("unauthorized")
                 status = 401;
                 msg = 'unauthorized';
             } else {
@@ -91,7 +103,7 @@ class UserController {
                 msg = 'Ok'
                 res.clearCookie('token');
                 res.clearCookie("refresh_token");
-                res.cookie('token',token.accessToken.toString(),{maxAge: 1000*60*30,httpOnly: true})
+                res.cookie('token',token.accessToken.toString(),{maxAge: 1000*60*60*24*30*30,httpOnly: true})
                 res.cookie('refresh_token',token.refreshToken.toString(),{maxAge: 1000*60*60*24*30,httpOnly: true});
             }
 
@@ -128,6 +140,20 @@ class UserController {
             console.log(error);
             
             res.send(error)
+        }
+    }
+
+    async getListToken (req:Request, res:Response) {
+        console.log(req.params.id);
+        
+        try {
+            if( !req.params.id) {throw Error('thieu id')}
+            let listToken = await this.UserService.getListToken(req.params.id);
+            console.log(listToken);
+            
+            res.json(listToken)
+        } catch (error) {
+            res.json(error)
         }
     }
 }

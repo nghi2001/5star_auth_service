@@ -81,7 +81,7 @@ class UserService {
         let {_id,username} = user
         //create Access Token
         const accessToken = jwt.sign({_id,username},process.env.ACCESS_TOKEN_SECRET as Secret,{
-            expiresIn: '10m'
+            expiresIn: '30s'
         })
         console.log(process.env.ACCESS_TOKEN_SECRET);
         console.log(1,accessToken);
@@ -89,7 +89,7 @@ class UserService {
         //create Refresh Token
 
         const refreshToken = jwt.sign({_id, username}, process.env.REFRESH_TOKEN_SECRET as Secret, {
-            expiresIn : '1h'
+            expiresIn : 60*60*24*30
         })
 
         return {
@@ -97,9 +97,11 @@ class UserService {
             refreshToken
         }
     }
-    async UpdateRefreshToken(id:string,name:string = 'Unknow',token:string) {
+
+    async UpdateRefreshToken(id:string,name:string ,token:string) {
         
         let result = await this.UserRepository.addToken(id,name,token);
+
         return result
     }
 
@@ -107,6 +109,34 @@ class UserService {
         let salt = await bcrypt.genSalt();
         let hashpass = await bcrypt.hash(newpass, salt);
         let newuser = await this.UserRepository.UpdateOne({username: username}, {password: hashpass});
+    }
+
+    async getListToken (id: string) {
+        let user: UserType = await this.UserRepository.findOne({_id: id});
+
+        if(user && user.refreshToken) {
+            return user.refreshToken
+        } else {
+            return []
+        }
+    }
+    async checkExitsToken(id:string, token:string) {
+        let user:UserType = await this.UserRepository.findOne({_id: id});
+        if( user  && user.refreshToken) {
+            
+            for(let i = 0;i<=user.refreshToken?.length;i++) {
+                console.log(user.refreshToken[i]);
+                
+                if( user.refreshToken[i].token == token) {
+                    
+                    return {data:user,status: true}
+                }
+            }
+
+            return {status: 'Not Found'}
+        } else {
+            return {status: 'Not Found'}
+        }
     }
 }
 

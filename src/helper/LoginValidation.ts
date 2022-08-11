@@ -3,7 +3,7 @@ const LoginValidation = {
     body: Joi.object({
         username: Joi.string().required(),
         password: Joi.string().required(),
-        devicename: Joi.string()
+        deviceName: Joi.string().required()
     })
 }
 export default LoginValidation
