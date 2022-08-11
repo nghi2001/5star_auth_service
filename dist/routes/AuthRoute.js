@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const express_validation_1 = require("express-validation");
+const UserController_1 = __importDefault(require("../controllers/UserController"));
+const UserValidator_1 = __importDefault(require("../helper/UserValidator"));
+const CheckCodeValidation_1 = __importDefault(require("../helper/CheckCodeValidation"));
+const LoginValidation_1 = __importDefault(require("../helper/LoginValidation"));
+const ChangePassValidation_1 = __importDefault(require("../helper/ChangePassValidation"));
+const router = express_1.default.Router();
+router.get("/listToken/:id", UserController_1.default.getListToken.bind(UserController_1.default));
+router.post("/sigup", (0, express_validation_1.validate)(UserValidator_1.default, {}, {}), UserController_1.default.sigup.bind(UserController_1.default));
+router.post("/sigin", (0, express_validation_1.validate)(LoginValidation_1.default), UserController_1.default.sigin.bind(UserController_1.default));
+router.post("/revoke", UserController_1.default.revokeToken.bind(UserController_1.default));
+router.post("/resetToken", UserController_1.default.getNewToken.bind(UserController_1.default));
+router.post("/changepass", (0, express_validation_1.validate)(ChangePassValidation_1.default), UserController_1.default.changePassword.bind(UserController_1.default));
+router.post("/active", (0, express_validation_1.validate)(CheckCodeValidation_1.default), UserController_1.default.activeAccount.bind(UserController_1.default));
+exports.default = router;
