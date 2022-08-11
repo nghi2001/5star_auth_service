@@ -14,8 +14,9 @@ const app = (0, express_1.default)();
 dotenv_1.default.config();
 const PORT = process.env.PORT || 4000;
 try {
-    mongoose_1.default.connect(`mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
+    mongoose_1.default.connect(`${process.env.DB_URL}`)
         .then(() => {
+        console.log(process.env.DB_URL);
         console.log("db connected");
     });
 }
@@ -24,12 +25,12 @@ catch (error) {
 }
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "125.235.234.147"],
     credentials: true
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.use('/auth', AuthRoute_1.default);
+app.use('/user', AuthRoute_1.default);
 app.use(function (err, req, res, next) {
     if (err instanceof express_validation_1.ValidationError) {
         return res.status(err.statusCode).json(err);
