@@ -108,7 +108,10 @@ class UserController {
 
             return res.json({
                 status,
-                msg
+                msg: {
+                    id: result.data._id,
+                    name: result.data.name
+                }
             })
         } catch (error) {
             console.log(error);
